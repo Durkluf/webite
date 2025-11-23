@@ -35,3 +35,30 @@ body {
     margin-left: 150px;
     padding-top: 80px;
 }
+
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+
+    .title {
+        position: static;
+        margin-bottom: 20px;
+    }
+
+    .nav {
+        position: static;
+        flex-direction: row;
+        margin-bottom: 20px;
+    }
+
+    .nav a {
+        margin-right: 15px;
+        margin-bottom: 0;
+    }
+
+    .content {
+        margin-left: 0;
+        padding-top: 0;
+    }
+}
