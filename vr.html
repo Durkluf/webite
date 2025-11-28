@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>vr - aframe object explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="styles/style.css">
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+</head>
+<body>
+    <div class="title">vr</div>
+    <div class="nav">
+        <a href="index.html">home</a>
+        <a href="resume.html">resume</a>
+        <a href="images.html">images</a>
+        <a href="vr.html">vr</a>
+    </div>
+    <div class="vr-controls">
+        <button id="add-object">add object</button>
+        <button id="remove-all">remove all</button>
+    </div>
+    <a-scene>
+        <a-sky id="sky" color="#ECECEC"></a-sky>
+        <a-entity camera position="0 1.6 0" wasd-controls look-controls>
+            <a-cursor raycaster="objects: [mixin='interactive']"></a-cursor>
+        </a-entity>
+        <a-entity hand-controls="hand: left"></a-entity>
+        <a-entity hand-controls="hand: right"></a-entity>
+        <a-entity dom-overlay="z-index: 1;">
+            <div class="disclaimer"></div>
+        </a-entity>
+        <a-text id="object-count" value="number of objects: 0" position="-2 3 -4" color="black"></a-text>
+    </a-scene>
+    <script>
+        // DOM elements
+        const scene = document.querySelector('a-scene');
+        const objectCountText = document.getElementById('object-count');
+        const disclaimerContainer = document.querySelector('.disclaimer p');
+        const addObjectBtn = document.getElementById('add-object');
+        const removeAllBtn = document.getElementById('remove-all');
+
+        // Object data
+        const shapes = ['a-box', 'a-sphere', 'a-cylinder', 'a-cone', 'a-torus', 'a-dodecahedron', 'a-octahedron', 'a-icosahedron', 'a-tetrahedron'];
+        const images = [
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Wassily_Kandinsky%2C_1913_-_Composition_7.jpg/800px-Wassily_Kandinsky%2C_1913_-_Composition_7.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Kazimir_Malevich%2C_1915%2C_Suprematist_Composition.jpg/800px-Kazimir_Malevich%2C_1915%2C_Suprematist_Composition.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/4/47/Touhou_cosplay_at_Anime_Expo_2010.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Vocaloid_cosplay_at_Otakon_2008.jpg/800px-Vocaloid_cosplay_at_Otakon_2008.jpg'
+        ];
+
+        let objectCount = 0;
+
+        /**
+         * Creates a random 3D entity (shape or image) and adds it to the scene.
+         */
+        function createEntity() {
+            let entity;
+            if (Math.random() > 0.3) {
+                // Create a geometric shape
+                entity = document.createElement(shapes[Math.floor(Math.random() * shapes.length)]);
+                const color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                entity.setAttribute('color', color);
+            } else {
+                // Create an image
+                entity = document.createElement('a-image');
+                const src = images[Math.floor(Math.random() * images.length)];
+                entity.setAttribute('src', src);
+                entity.setAttribute('crossorigin', 'anonymous');
+            }
+
+            entity.setAttribute('mixin', 'interactive');
+
+            // Set random position, rotation, and scale
+            const x = Math.random() * 40 - 20;
+            const y = Math.random() * 20;
+            const z = Math.random() * 40 - 20;
+            const rotX = Math.random() * 360;
+            const rotY = Math.random() * 360;
+            const rotZ = Math.random() * 360;
+            const scale = Math.random() * 2 + 0.5; // smaller objects
+
+            entity.setAttribute('position', {x, y, z});
+            entity.setAttribute('rotation', {x: rotX, y: rotY, z: rotZ});
+            entity.setAttribute('scale', {x: scale, y: scale, z: scale});
+
+            // Add random rotation animation
+            if (Math.random() > 0.5) {
+                const animation = document.createElement('a-animation');
+                animation.setAttribute('attribute', 'rotation');
+                animation.setAttribute('dur', Math.random() * 10000 + 5000);
+                animation.setAttribute('to', '0 360 0');
+                animation.setAttribute('repeat', 'indefinite');
+                animation.setAttribute('easing', 'linear');
+                entity.appendChild(animation);
+            }
+
+            // Add click listener to teleport the object
+            entity.addEventListener('click', function() {
+                const x = Math.random() * 40 - 20;
+                const y = Math.random() * 20;
+                const z = Math.random() * 40 - 20;
+                this.setAttribute('position', {x, y, z});
+            });
+
+            scene.appendChild(entity);
+            objectCount++;
+            updateObjectCount();
+        }
+
+        /**
+         * Removes all interactive entities from the scene.
+         */
+        function removeAllEntities() {
+            const entities = document.querySelectorAll('[mixin="interactive"]');
+            entities.forEach(entity => entity.parentNode.removeChild(entity));
+            objectCount = 0;
+            updateObjectCount();
+        }
+
+        /**
+         * Updates the object count text.
+         */
+        function updateObjectCount() {
+            if (objectCountText) {
+                objectCountText.setAttribute('value', `number of objects: ${objectCount}`);
+            }
+        }
+        
+        // Event Listeners
+        if(addObjectBtn) {
+            addObjectBtn.addEventListener('click', createEntity);
+        }
+
+        if(removeAllBtn){
+            removeAllBtn.addEventListener('click', removeAllEntities);
+        }
+
+
+        // Create assets and initial entities
+        const assets = document.createElement('a-assets');
+        scene.appendChild(assets);
+
+        const interactiveMixin = document.createElement('a-mixin');
+        interactiveMixin.setAttribute('id', 'interactive');
+        interactiveMixin.setAttribute('geometry', '');
+        interactiveMixin.setAttribute('material', '');
+        assets.appendChild(interactiveMixin);
+
+        const NUM_INITIAL_OBJECTS = 10;
+        for (let i = 0; i < NUM_INITIAL_OBJECTS; i++) {
+            createEntity();
+        }
+    </script>
+</body>
